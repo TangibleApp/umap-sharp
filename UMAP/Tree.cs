@@ -19,7 +19,7 @@ namespace UMAP
         {
             if (indices.Length > leafSize)
             {
-                var (indicesLeft, indicesRight, hyperplaneVector, hyperplaneOffset) = EuclideanRandomProjectionSplit(data, indices, random);
+                var (indicesLeft, indicesRight, hyperplaneVector, hyperplaneOffset) = EuclideanRandomProjectionSplit(data, indices, random, q);
                 var leftChild = MakeEuclideanTree(data, indicesLeft, leafSize, q + 1, random);
                 var rightChild = MakeEuclideanTree(data, indicesRight, leafSize, q + 1, random);
                 return new RandomProjectionTreeNode { Indices = indices, LeftChild = leftChild, RightChild = rightChild, IsLeaf = false, Hyperplane = hyperplaneVector, Offset = hyperplaneOffset };
@@ -50,7 +50,7 @@ namespace UMAP
         /// the basis for a random projection tree, which simply uses this splitting recursively. This particular split uses euclidean distance to determine the hyperplane and which side each data
         /// sample falls on.
         /// </summary>
-        private static (int[] indicesLeft, int[] indicesRight, float[] hyperplaneVector, float hyperplaneOffset) EuclideanRandomProjectionSplit(float[][] data, int[] indices, IProvideRandomValues random)
+        private static (int[] indicesLeft, int[] indicesRight, float[] hyperplaneVector, float hyperplaneOffset) EuclideanRandomProjectionSplit(float[][] data, int[] indices, IProvideRandomValues random, int q)
         {
             var dim = data[0].Length;
 
@@ -84,7 +84,7 @@ namespace UMAP
                     margin += hyperplaneVector[d] * data[indices[i]][d];
                 }
 
-                if (margin == 0)
+                if (margin == 0 || q > 2048)
                 {
                     side[i] = random.Next(0, 2);
                     if (side[i] == 0)
